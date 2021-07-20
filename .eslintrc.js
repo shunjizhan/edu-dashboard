@@ -5,7 +5,7 @@ module.exports = {
   },
   extends: [
     'plugin:vue/essential',
-    '@vue/standard',
+    '@vue/airbnb',
     '@vue/typescript/recommended'
   ],
   parserOptions: {
@@ -26,7 +26,14 @@ module.exports = {
       'LabeledStatement',
       'WithStatement',
     ],
-
+    'comma-dangle': [1, {
+      "arrays": "always",
+      "objects": "always",
+      "imports": "never",
+      "exports": "never",
+      "functions": "never"
+    }],
+    
     /* ---------- turned off ---------- */
     'max-len': 0,
     'no-underscore-dangle': 0,
