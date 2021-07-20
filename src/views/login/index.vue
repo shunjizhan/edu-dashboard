@@ -70,7 +70,10 @@ export default Vue.extend({
         if (data.state !== 1) {     // 失败
           this.$message.error(data.message);   // this.$message是Vue.use(ElementUI)的时候注入的
         } else {
-          // 在访问需要登录的页面的时候判断有没有登录状态（路由拦截器）
+          // 登录成功，记录登录状态到Vuex中，以便在访问需要登录的页面的时候判断有没有登录状态（路由拦截器）
+          const userData = JSON.parse(data.content);
+          this.$store.commit('setUser', userData);
+
           // 跳转回原来页面或首页
           this.$router.push(this.$route.query.redirect as string || '/');
 

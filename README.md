@@ -159,3 +159,9 @@ element UI的form组件自带表单验证功能，只需要在data()里面添加
 ```ts
 await (this.$refs.form as Form).validate();
 ```
+
+## 8) 将登陆状态存入vuex
+在vuex中加一个mutation，可以set当前的user以及把user存在localstorage里面，这样刷新界面以后还会保持登录状态。在登陆成功以后，就调用
+```ts
+this.$store.commit('setUser', userData);
+```
