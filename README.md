@@ -123,3 +123,32 @@ Layout主要包括侧边导航和Header，我们就直接用element UI的组件�
   }
 }
 ```
+
+## 6) Login接口封装和使用
+在service/user.ts里面封装了login的函数，这个接口需要的数据类型不是application/json,而是x-www-form-urlencoded,所以需要用到一个库qs来处理一下。
+
+在login.vue里面使用登陆的函数登陆，如果成功的话跳转到原来的界面或者首页。
+```ts
+async onSubmit() {
+  try {
+    this.isLoginLoading = true;
+
+    const { data } = await login(this.form);
+
+    if (data.state !== 1) {     // 失败
+      this.$message.error(data.message);   // this.$message是Vue.use(ElementUI)的时候注入的
+    } else {
+      // 在访问需要登录的页面的时候判断有没有登录状态（路由拦截器）
+      // 跳转回原来页面或首页
+      this.$router.push(this.$route.query.redirect as string || '/');
+
+      this.$message.success('登录成功');
+    }
+  } catch (err) {
+    console.log('登录失败', err);
+  }
+
+  // 结束登录按钮的 loading
+  this.isLoginLoading = false;
+},
+```

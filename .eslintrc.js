@@ -27,8 +27,8 @@ module.exports = {
       'WithStatement',
     ],
     'comma-dangle': [1, {
-      "arrays": "always",
-      "objects": "always",
+      "arrays": "always-multiline",
+      "objects": "always-multiline",
       "imports": "never",
       "exports": "never",
       "functions": "never"

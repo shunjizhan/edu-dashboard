@@ -1,16 +1,11 @@
 <template>
   <div class="login">
-    <!--
-      1. :model="ruleForm"
-      2. :rules="rules"
-      3. ref="ruleForm"
-      4. el-form-item 绑定 prop 属性
-     -->
     <el-form
       class="login-form"
       label-position="top"
       ref="form"
       :model="form"
+      :rules="rules"
       label-width="80px"
     >
       <el-form-item label="手机号" prop="phone">
@@ -23,7 +18,11 @@
         <el-button
           class="login-btn"
           type="primary"
-        >登录</el-button>
+          :loading="isLoginLoading"
+          @click="onSubmit"
+        >
+          登录
+        </el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -31,6 +30,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { Form } from 'element-ui';
+import { login } from '@/services/user';
 
 export default Vue.extend({
   name: 'LoginIndex',
@@ -40,7 +41,33 @@ export default Vue.extend({
         phone: '18201288771',
         password: '111111',
       },
+      isLoginLoading: false,
     };
+  },
+
+  methods: {
+    async onSubmit() {
+      try {
+        this.isLoginLoading = true;
+
+        const { data } = await login(this.form);
+
+        if (data.state !== 1) {     // 失败
+          this.$message.error(data.message);   // this.$message是Vue.use(ElementUI)的时候注入的
+        } else {
+          // 在访问需要登录的页面的时候判断有没有登录状态（路由拦截器）
+          // 跳转回原来页面或首页
+          this.$router.push(this.$route.query.redirect as string || '/');
+
+          this.$message.success('登录成功');
+        }
+      } catch (err) {
+        console.log('登录失败', err);
+      }
+
+      // 结束登录按钮的 loading
+      this.isLoginLoading = false;
+    },
   },
 });
 </script>
