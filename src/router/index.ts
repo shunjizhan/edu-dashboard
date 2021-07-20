@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import VueRouter, { RouteConfig } from 'vue-router';
 import Layout from '@/layout/index.vue';
+import store from '@/store';
 
 Vue.use(VueRouter);
 
@@ -14,6 +15,7 @@ const routes: Array<RouteConfig> = [
   {
     path: '/',
     component: Layout,
+    meta: { requireLogin: true },
     children: [
       {
         path: '', // 默认子路由
@@ -66,6 +68,20 @@ const routes: Array<RouteConfig> = [
 
 const router = new VueRouter({
   routes,
+});
+
+// 全局前置守卫：任何界面的访问都要经过这里。
+router.beforeEach((to, from, next) => {
+  // to.matched是整个路由的链的数组，包括子路由和副路由
+  if (to.matched.some(x => x.meta.requireLogin)) {
+    if (!store.state.user) {
+      next({ name: 'login' });    // 跳转
+    } else {
+      next();   // 放行
+    }
+  } else {
+    next();     // 放行
+  }
 });
 
 export default router;

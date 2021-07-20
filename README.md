@@ -165,3 +165,22 @@ await (this.$refs.form as Form).validate();
 ```ts
 this.$store.commit('setUser', userData);
 ```
+
+## 9) 校验界面访问权限
+路由设置里面的meta可以随意加数据，我们为需要login才能访问的界面加上requireLogin：true，然后在全局前置守卫里面判断是否放行，如果没有登录则跳转回登录界面。
+在路由这里可以拿到store是因为直接在上面`import store from '@/store';`
+```ts
+// 全局前置守卫：任何界面的访问都要经过这里。
+router.beforeEach((to, from, next) => {
+  // to.matched是整个路由的链的数组，包括子路由和副路由
+  if (to.matched.some(x => x.meta.requireLogin)) {
+    if (!store.state.user) {
+      next({ name: 'login' });    // 跳转
+    } else {
+      next();   // 放行
+    }
+  } else {
+    next();     // 放行
+  }
+});
+```
