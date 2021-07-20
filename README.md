@@ -106,3 +106,20 @@ Layout主要包括侧边导航和Header，我们就直接用element UI的组件�
   }
 }
 ```
+
+## 5) Login界面基本布局
+用element UI的创建好login界面的view，用v-model绑定手机和password。
+
+让login界面的表单（login-form）出现在正中间（上下和左右都是中间）
+```scss
+.login {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .login-form {
+    width: 300px;
+  }
+}
+```
