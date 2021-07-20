@@ -17,7 +17,7 @@
       </span>
       <el-dropdown-menu slot="dropdown">
         <el-dropdown-item>{{ userInfo.userName }}</el-dropdown-item>
-        <el-dropdown-item divided>退出</el-dropdown-item>
+        <el-dropdown-item divided @click.native="handleLogOut">退出</el-dropdown-item>
       </el-dropdown-menu>
     </el-dropdown>
   </div>
@@ -41,6 +41,10 @@ export default Vue.extend({
     async loadUserInfo() {
       const { data } = await getUserInfo();
       this.userInfo = data.content;
+    },
+    handleLogOut() {
+      this.$store.commit('setUser', null);
+      this.$router.push({ name: 'login' });
     },
   },
 });

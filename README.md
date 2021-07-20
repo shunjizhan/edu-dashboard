@@ -209,3 +209,8 @@ request.interceptors.request.use(config => {
   return res;
 }, Promise.reject);
 ```
+
+## 12) 用户退出
+这里比较tricky的是我们给`<el-dropdown-item>`设置click事件的时候，不能直接`@click="handleLogOut"`，因为这是一个组件，不是一个原生的DOM，而且内部也没有继续处理@click。所以我们需要把click事件handler注册给这个component的根节点：`@click.native="handleLogOut"`
+
+Logout的逻辑很简单，就是清空store里面的user（mutation里面同时会清空localstorage），然后在redirect到login界面
