@@ -18,3 +18,7 @@ export const login = (data: LoginData) => request({
   // 如果 data 是 FormData 对象，则 Content-Type 是 multipart/form-data
 });
 
+export const getUserInfo = () => request({
+  method: 'GET',
+  url: '/front/user/getInfo',
+});

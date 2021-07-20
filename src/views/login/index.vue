@@ -41,6 +41,18 @@ export default Vue.extend({
         phone: '18201288771',
         password: '111111',
       },
+      rules: {
+        phone: [
+          { required: true, message: '请输入手机号', trigger: 'blur' },
+          { pattern: /^1\d{10}$/, message: '请输入正确的手机号', trigger: 'blur' },
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' },
+          {
+            min: 6, max: 18, message: '长度在 6 到 18 个字符', trigger: 'blur',
+          },
+        ],
+      },
       isLoginLoading: false,
     };
   },
@@ -48,6 +60,9 @@ export default Vue.extend({
   methods: {
     async onSubmit() {
       try {
+        // 表单验证
+        await (this.$refs.form as Form).validate();
+
         this.isLoginLoading = true;
 
         const { data } = await login(this.form);

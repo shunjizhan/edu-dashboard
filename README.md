@@ -152,3 +152,10 @@ async onSubmit() {
   this.isLoginLoading = false;
 },
 ```
+
+## 7) 表单验证
+element UI的form组件自带表单验证功能，只需要在data()里面添加上功能,然后
+
+```ts
+await (this.$refs.form as Form).validate();
+```
