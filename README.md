@@ -184,3 +184,13 @@ router.beforeEach((to, from, next) => {
   }
 });
 ```
+
+## 10) 展示用户信息
+封装一个getUserInfo的接口，需要传入当然用户的token。在header component里面调用一下，拿到用户数据并且展示。
+
+同时我们设置了一个默认的头像，因为是动态绑定，需要用require传进来。
+```html
+<el-avatar
+  :src="userInfo.portrait || require('../../assets/default-avatar.png')"
+></el-avatar>
+```
