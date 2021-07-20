@@ -85,4 +85,24 @@ const routes: Array<RouteConfig> = [
 ];
 ```
 这样设置好以后，我们访问/role, /user等等，都会看到共同的layout布局 
+## 4) Layout设置
+Layout主要包括侧边导航和Header，我们就直接用element UI的组件，在layout里面创建两个对应的component。
 
+这里用到的css
+```scss
+.header {
+  // 实现vertical align: center
+  height: 100%;
+  display: flex;
+  align-items: center;
+
+  // 让面包屑在左边，用户头像在右边
+  justify-content: space-between;
+
+  // link的图标vertical align: center
+  .el-dropdown-link {
+    display: flex;
+    align-items: center;
+  }
+}
+```
