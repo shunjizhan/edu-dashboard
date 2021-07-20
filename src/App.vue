@@ -16,6 +16,12 @@
 
 <script lang='ts'>
 import Vue from 'vue';
+import request from '@/utils/request';
+
+request({
+  method: 'GET',
+  url: '/boss/v2/api-docs?group=edu-boss-boot',   // 测试，可以收到响应
+}).then(console.log);
 
 export default Vue.extend({
   data() {
