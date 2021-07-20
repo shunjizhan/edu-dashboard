@@ -167,7 +167,7 @@ this.$store.commit('setUser', userData);
 ```
 
 ## 9) 校验界面访问权限
-路由设置里面的meta可以随意加数据，我们为需要login才能访问的界面加上requireLogin：true，然后在全局前置守卫里面判断是否放行，如果没有登录则跳转回登录界面。
+路由设置里面的meta可以随意加数据，我们为需要login才能访问的界面加上requireLogin：true，然后在**全局前置守卫**里面判断是否放行，如果没有登录则跳转回登录界面。
 在路由这里可以拿到store是因为直接在上面`import store from '@/store';`
 ```ts
 // 全局前置守卫：任何界面的访问都要经过这里。
@@ -193,4 +193,19 @@ router.beforeEach((to, from, next) => {
 <el-avatar
   :src="userInfo.portrait || require('../../assets/default-avatar.png')"
 ></el-avatar>
+```
+
+## 11) 统一设置auth token
+如果每个reques都要加上Authorization: xxx就会很麻烦，我们可以用请求拦截器来统一设置token。在用用户登陆的情况下，给request自动加上Authorization。
+```ts
+request.interceptors.request.use(config => {
+  const res = { ...config };
+
+  const { user } = store.state;
+  if (user && user.access_token) {
+    res.headers.Authorization = user.access_token;
+  }
+
+  return res;
+}, Promise.reject);
 ```
