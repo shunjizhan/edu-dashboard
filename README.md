@@ -49,3 +49,40 @@ devServer: {
   },
 },
 ```
+
+## 3) 设置路由
+很多组件都共享一些界面布局，比如footter，header，侧边导航等等，这些共享的布局我们就可以放到layout中，不同路径特定的组件就是layout的children。
+```ts
+// login和404不需要Layout，是一个单独的界面，其它的共享layout
+const routes: Array<RouteConfig> = [
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import(/* webpackChunkName: 'login' */ '@/views/login/index.vue'),
+  },
+  {
+    path: '/',
+    component: Layout,
+    children: [
+      {
+        path: '',   // 默认子路由
+        name: 'home',
+        component: () => import(/* webpackChunkName: 'home' */ '@/views/home/index.vue'),
+      },
+      {
+        path: '/role',
+        name: 'role',
+        component: () => import(/* webpackChunkName: 'role' */ '@/views/role/index.vue'),
+      },
+      // ...
+    ],
+  },
+  {
+    path: '*',
+    name: '404',
+    component: () => import(/* webpackChunkName: '404' */ '@/views/error-page/404.vue'),
+  },
+];
+```
+这样设置好以后，我们访问/role, /user等等，都会看到共同的layout布局 
+
