@@ -214,3 +214,68 @@ request.interceptors.request.use(config => {
 这里比较tricky的是我们给`<el-dropdown-item>`设置click事件的时候，不能直接`@click="handleLogOut"`，因为这是一个组件，不是一个原生的DOM，而且内部也没有继续处理@click。所以我们需要把click事件handler注册给这个component的根节点：`@click.native="handleLogOut"`
 
 Logout的逻辑很简单，就是清空store里面的user（mutation里面同时会清空localstorage），然后在redirect到login界面
+
+## 13) 处理token过期的问题
+token一般都有一个过期时间(login的时候会返回一个expires_in),目的是为了安全性，就算有人拿到了token，也不能长时间使用。（这个动机有点类似于鼓励用户经常换密码）
+
+这里可以用到**响应(response)拦截器**。request返回401包含几种情况：没有提供token，token无效，token过期，所以我们可以在响应拦截器里面判断如果返回401，并且登陆的时候返回了refreshToken的话，就尝试重新刷新token。
+
+为了刷新失败导致的无限循环，一个巧妙的办法就是不要用我们配置好的request发请求，而是用axios.create()创建一个新的请求，这样如果再一次401的话就不会再走响应拦截器，避免无限循环。
+```ts
+axios.create()({
+  method: 'POST',
+  url: '/front/user/refresh_token',
+  data: qs.stringify({
+    // refresh_token 只能使用1次
+    refreshtoken: store.state.user.refresh_token,
+  }),
+})
+```
+
+为了防止几个请求同时401，重复的刷新token (refreshToken只能使用一次，之后的会fail），我们可以加一个flag: `isRefreshing`，这样保证只有一次refreshToken的POST请求在执行。同时，我们把几个401的请求包装进cb存起来，在refreshToken成功了以后的then()中，再重新调用这些cb。
+
+需要注意的一点是，这里的handleErr() => handle401()必须要返回一个promise，resolve掉后来重新发送的requests。因为我们最终是想拿到data，然后存起来：
+```ts
+// 存用户data
+async loadUserInfo() {
+  const { data } = await getUserInfo(); 
+  this.userInfo = data.content;
+}
+```
+
+成功的流程：
+```
+request (200)
+=> .then()
+=> 存用户data
+```
+
+失败的流程：
+```
+request (401)
+=> .catch()
+  => handleErr()
+  => handle401()
+  => refreshToken()
+  => res = new request()
+  => resolve(res)
+=> .then()
+=> 存用户data
+```
+
+所以我们的handle401中,对于每一个失败的401，存的cb必须是带resolve的，以便之后的then()继续执行。
+```ts
+// 错误，仅仅重新request不够，还要resolve重新拿到的结果
+return requests.push(() => {
+  request(error.config);
+});
+
+// 正确
+return new Promise(resolve => {
+  requests.push(() => {
+    resolve(request(error.config));
+  });
+});
+```
+
+**这个例子生动的解释了promise的链式调用的好处，之前不理解为什么catch了以后还需要继续then()，现在知道了原来是可以在catch()里面重新请求，然后再把结果继续传递。**
