@@ -38,7 +38,9 @@ module.exports = {
     'max-len': 0,
     'no-underscore-dangle': 0,
     'no-multi-spaces': 0,
+    'import/prefer-default-export': 1,
     'no-unused-expressions': [2, { allowShortCircuit: true }],              // allow x && y()
     'import/no-extraneous-dependencies': [2, { devDependencies: true }],    // so can import enzyme, which is dev dependencies
+    '@typescript-eslint/no-explicit-any': 0,
   }
 }

@@ -286,3 +286,22 @@ return new Promise(resolve => {
 - 新建/编辑界面：这两个界面几乎一样，所以公用一个组件，用isEdit的prop来区分。
 
 其它的没啥特别的，就是先包装了所有需要的接口，然后用v-model绑定各种数据，然后绑定event handlers
+
+## 15）资源管理
+资源管理界面跟上面的菜单管理很类似，就是从api接口拿数据，然后跟table绑定。
+
+有两点不太一样：分页和搜索功能。
+
+分页：
+这里要用到elementUI里面提供的`<el-pagination>`来处理分页，主要就是两个handler来处理换页和改变每页显示的数量，实现也很简单，就是把this.form里关于分页的data改变一下，然后重新拿数据（会自动把this.form作为参数）。
+
+搜索：搜索功能其实也是一个form，绑定了数据以后，按搜索按钮就会重新拿数据，并且自动把绑定的数据作为参数（所以就是个纯后端搜索）
+
+还有一点需要注意,对于async function的调用，可以不加await，这样就不会等待，但是也会执行不会报错。
+如果几个async function可以并行，就不需要await
+```ts
+created() {
+  this.loadResources();
+  this.loadResourceCategories();
+},
+```
