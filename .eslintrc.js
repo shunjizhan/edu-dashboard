@@ -42,5 +42,6 @@ module.exports = {
     'no-unused-expressions': [2, { allowShortCircuit: true }],              // allow x && y()
     'import/no-extraneous-dependencies': [2, { devDependencies: true }],    // so can import enzyme, which is dev dependencies
     '@typescript-eslint/no-explicit-any': 0,
+    'no-param-reassign': 0,
   }
 }

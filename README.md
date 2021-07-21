@@ -292,10 +292,11 @@ return new Promise(resolve => {
 
 有两点不太一样：分页和搜索功能。
 
-分页：
+**分页：**
 这里要用到elementUI里面提供的`<el-pagination>`来处理分页，主要就是两个handler来处理换页和改变每页显示的数量，实现也很简单，就是把this.form里关于分页的data改变一下，然后重新拿数据（会自动把this.form作为参数）。
 
-搜索：搜索功能其实也是一个form，绑定了数据以后，按搜索按钮就会重新拿数据，并且自动把绑定的数据作为参数（所以就是个纯后端搜索）
+**搜索：**
+搜索功能其实也是一个form，绑定了数据以后，按搜索按钮就会重新拿数据，并且自动把绑定的数据作为参数（所以就是个纯后端搜索）
 
 还有一点需要注意,对于async function的调用，可以不加await，这样就不会等待，但是也会执行不会报错。
 如果几个async function可以并行，就不需要await
@@ -305,3 +306,37 @@ created() {
   this.loadResourceCategories();
 },
 ```
+
+## 16) 角色管理
+角色管理主界面也是一个一样的table，跟之前没什么大的区别。
+每个角色需要有一个分配资源和分配菜单的界面，里面主要是用树形图选择需要的资源，这里直接用到elementUI的树形图，没有太多特别的，就是调树形图的API。
+
+**父子组件通信：**
+可以通过子组件emit一个自定义事件，父组件监听这个事件来实现。
+```html
+<create-or-edit
+  v-if="dialogVisible"
+  :role-id="roleId"
+  :is-edit="isEdit"
+  @success="onSuccess"
+  @cancel="dialogVisible = false"
+/>
+
+<!-- create-or-edit 里面 -->
+<el-button @click="$emit('cancel')">取消</el-button>
+```
+注意这里需要传入一个`v-if="dialogVisible"`,这样保证每次弹出对话框都会重新创建组件（而不仅仅是隐藏和显示），这样内部的created()才会重新被调用，拿到需要的数据
+
+**组件与路由解耦：**
+我们在组件里面可以用this.$route.params拿到路由参数，但是如果我们想让组件结构，可以把参数作为prop传进来，这样这个组件不作为路由组件也可以使用。
+
+这样我们需要在router里面设置，把路由参数作为prop传给组件。
+```ts
+{
+  path: '/role/:roleId/alloc-menu',
+  name: 'alloc-menu',
+  component: () => import(/* webpackChunkName: 'alloc-menu' */ '@/views/role/alloc-menu.vue'),
+  props: true,       // 将路由路径参数映射到组件的 props 数据中
+},
+```
+
