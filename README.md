@@ -1,5 +1,10 @@
 # Education Dashboard
-## 杂
+这是一个用vue+TS实现的课程管理的dashboard。
+
+部署界面：https://edu-dashboard.vercel.app/#/
+
+## 实现过程
+### 0) 准备
 ### 装饰器的使用（不建议在生产环境使用，有可能有重大改变）
 ```ts
 function decorate (target) {
@@ -18,7 +23,7 @@ console.log(MyClass.x)  // => true
 - class API
 我们这个项目主要用到第一种，因为装饰器还不是特别官方，可能会有重大改动
 
-## 1）共享全局样式变量
+### 1）共享全局样式变量
 如果要在组件中单独使用变量，必须要import
 ```html
 <style lang="scss" scoped>
@@ -32,7 +37,7 @@ console.log(MyClass.x)  // => true
 
 想让组件更方便的使用全局变量，比如color，可以写在vue.config.js里面传入共享全局变量。
 
-## 2）跨域
+### 2）跨域
 服务器端没有设置CORS，如果想要跨域的话可以自vue.config.js里面设置proxy。
 ```ts
 devServer: {
@@ -50,7 +55,7 @@ devServer: {
 },
 ```
 
-## 3) 设置路由
+### 3) 设置路由
 很多组件都共享一些界面布局，比如footter，header，侧边导航等等，这些共享的布局我们就可以放到layout中，不同路径特定的组件就是layout的children。
 ```ts
 // login和404不需要Layout，是一个单独的界面，其它的共享layout
@@ -85,7 +90,7 @@ const routes: Array<RouteConfig> = [
 ];
 ```
 这样设置好以后，我们访问/role, /user等等，都会看到共同的layout布局 
-## 4) Layout设置
+### 4) Layout设置
 Layout主要包括侧边导航和Header，我们就直接用element UI的组件，在layout里面创建两个对应的component。
 
 这里用到的css
@@ -107,7 +112,7 @@ Layout主要包括侧边导航和Header，我们就直接用element UI的组件�
 }
 ```
 
-## 5) Login界面基本布局
+### 5) Login界面基本布局
 用element UI的创建好login界面的view，用v-model绑定手机和password。
 
 让login界面的表单（login-form）出现在正中间（上下和左右都是中间）
@@ -124,7 +129,7 @@ Layout主要包括侧边导航和Header，我们就直接用element UI的组件�
 }
 ```
 
-## 6) Login接口封装和使用
+### 6) Login接口封装和使用
 在service/user.ts里面封装了login的函数，这个接口需要的数据类型不是application/json,而是x-www-form-urlencoded,所以需要用到一个库qs来处理一下。
 
 在login.vue里面使用登陆的函数登陆，如果成功的话跳转到原来的界面或者首页。
@@ -153,20 +158,20 @@ async onSubmit() {
 },
 ```
 
-## 7) 表单验证
+### 7) 表单验证
 element UI的form组件自带表单验证功能，只需要在data()里面添加上功能,然后
 
 ```ts
 await (this.$refs.form as Form).validate();
 ```
 
-## 8) 将登陆状态存入vuex
+### 8) 将登陆状态存入vuex
 在vuex中加一个mutation，可以set当前的user以及把user存在localstorage里面，这样刷新界面以后还会保持登录状态。在登陆成功以后，就调用
 ```ts
 this.$store.commit('setUser', userData);
 ```
 
-## 9) 校验界面访问权限
+### 9) 校验界面访问权限
 路由设置里面的meta可以随意加数据，我们为需要login才能访问的界面加上requireLogin：true，然后在**全局前置守卫**里面判断是否放行，如果没有登录则跳转回登录界面。
 在路由这里可以拿到store是因为直接在上面`import store from '@/store';`
 ```ts
@@ -185,7 +190,7 @@ router.beforeEach((to, from, next) => {
 });
 ```
 
-## 10) 展示用户信息
+### 10) 展示用户信息
 封装一个getUserInfo的接口，需要传入当然用户的token。在header component里面调用一下，拿到用户数据并且展示。
 
 同时我们设置了一个默认的头像，因为是动态绑定，需要用require传进来。
@@ -195,7 +200,7 @@ router.beforeEach((to, from, next) => {
 ></el-avatar>
 ```
 
-## 11) 统一设置auth token
+### 11) 统一设置auth token
 如果每个reques都要加上Authorization: xxx就会很麻烦，我们可以用请求拦截器来统一设置token。在用用户登陆的情况下，给request自动加上Authorization。
 ```ts
 request.interceptors.request.use(config => {
@@ -210,12 +215,12 @@ request.interceptors.request.use(config => {
 }, Promise.reject);
 ```
 
-## 12) 用户退出
+### 12) 用户退出
 这里比较tricky的是我们给`<el-dropdown-item>`设置click事件的时候，不能直接`@click="handleLogOut"`，因为这是一个组件，不是一个原生的DOM，而且内部也没有继续处理@click。所以我们需要把click事件handler注册给这个component的根节点：`@click.native="handleLogOut"`
 
 Logout的逻辑很简单，就是清空store里面的user（mutation里面同时会清空localstorage），然后在redirect到login界面
 
-## 13) 处理token过期的问题
+### 13) 处理token过期的问题
 token一般都有一个过期时间(login的时候会返回一个expires_in),目的是为了安全性，就算有人拿到了token，也不能长时间使用。（这个动机有点类似于鼓励用户经常换密码）
 
 这里可以用到**响应(response)拦截器**。request返回401包含几种情况：没有提供token，token无效，token过期，所以我们可以在响应拦截器里面判断如果返回401，并且登陆的时候返回了refreshToken的话，就尝试重新刷新token。
@@ -280,14 +285,14 @@ return new Promise(resolve => {
 
 **这个例子生动的解释了promise的链式调用的好处，之前不理解为什么catch了以后还需要继续then()，现在知道了原来是可以在catch()里面重新请求，然后再把结果继续传递。**
 
-## 14) 菜单管理
+### 14) 菜单管理
 权限管理 => 菜单管理包含两个界面：
 - 展示界面：是一个table展示了所有的菜单
 - 新建/编辑界面：这两个界面几乎一样，所以公用一个组件，用isEdit的prop来区分。
 
 其它的没啥特别的，就是先包装了所有需要的接口，然后用v-model绑定各种数据，然后绑定event handlers
 
-## 15）资源管理
+### 15）资源管理
 资源管理界面跟上面的菜单管理很类似，就是从api接口拿数据，然后跟table绑定。
 
 有两点不太一样：分页和搜索功能。
@@ -307,7 +312,7 @@ created() {
 },
 ```
 
-## 16) 角色管理
+### 16) 角色管理
 角色管理主界面也是一个一样的table，跟之前没什么大的区别。
 每个角色需要有一个分配资源和分配菜单的界面，里面主要是用树形图选择需要的资源，这里直接用到elementUI的树形图，没有太多特别的，就是调树形图的API。
 
@@ -340,10 +345,10 @@ created() {
 },
 ```
 
-## 17) 用户管理
+### 17) 用户管理
 跟之前的差不多
 
-## 18）课程管理: 主界面和查看/编辑界面
+### 18）课程管理: 主界面和查看/编辑界面
 **::v-deep**
 让css作用得更深，到子组件,可以用到`::v-deep`
 ```html
@@ -398,10 +403,10 @@ const handleUploadProgress = (e: any) => {
 
 const { data } = await uploadCourseImage(fd, handleUploadProgress);
 ```
-## 19）课程管理: 课程内容的查看和编辑
+### 19）课程管理: 课程内容的查看和编辑
 
 
-## 20) 打包部署
+### 20) 打包部署
 首先`yarn build`打包，实际是运行vue-cli提供的打包script。
 
 打包好的dist目录有两种启动方法：
