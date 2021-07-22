@@ -343,3 +343,58 @@ created() {
 ## 17) 用户管理
 跟之前的差不多
 
+## 18）课程管理: 主界面和查看/编辑界面
+**::v-deep**
+让css作用得更深，到子组件,可以用到`::v-deep`
+```html
+<style lang="scss" scoped>
+::v-deep .avatar-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  ...
+}
+</style>
+```
+
+**上传组件**
+我们想实现的上传组件核心的用法是
+```html
+<course-image
+  v-model="course.courseListImg"
+  :limit="5"
+/>
+```
+这里的v-model的本质其实是父子组件通信：
+- 它会给子组件传递一个名字叫 value 的数据（Props)
+- 默认监听 input 事件，修改绑定的数据（自定义事件） 
+
+所以父组件通过value传入（默认的）url，子组件（上传组件）上传成功之后，我们可以用$emit input事件来告诉父组件上传好的文件url，从而更新courseListImg。这样就实现了双向绑定。
+```ts
+this.$emit('input', url);
+```
+
+texteditor组件也是一样的原理： 
+```html
+<text-editor v-model="course.description" />
+```
+
+```ts
+initEditor() {
+  const editor = new E(this.$refs.editor as any);
+  editor.config.onchange = (value: string) => {
+    this.$emit('input', value);     // 通知父组件
+  };
+  // ...
+}
+```
+
+**上传响应事件：progress**
+HTML5 新增了上传响应事件：progress。我们可以在uploadCourseImage接口传入一个cb，处理上传进度。
+
+```ts
+const handleUploadProgress = (e: any) => {
+  this.percentage = Math.floor((e.loaded / e.total) * 100);
+};
+
+const { data } = await uploadCourseImage(fd, handleUploadProgress);
+```
