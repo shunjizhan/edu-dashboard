@@ -6,7 +6,7 @@ import store from '@/store';
 import router from '@/router';
 
 const request = axios.create({
-
+  baseURL: '/api',    // 所有请求都会prepend上 /api
 });
 
 // 请求拦截器,可以在这里统一设置user token authorization
@@ -21,8 +21,8 @@ request.interceptors.request.use(config => {
   return res;
 }, Promise.reject);
 
-let isRefreshing = false;   // 避免同时几个401导致重复刷新token
-let requests = [];          // 存储刷新 token 期间过来的 401 请求
+let isRefreshing = false;         // 避免同时几个401导致重复刷新token
+let requests: Array<any> = [];    // 存储刷新 token 期间过来的 401 请求
 const flushRequests = () => {
   requests.forEach(cb => cb());
   requests = [];
@@ -42,6 +42,7 @@ function refreshToken() {
   // 这样如果再一次401的话就不会再走响应拦截器，避免无限循环。
   return axios.create()({
     method: 'POST',
+    baseURL: '/api',
     url: '/front/user/refresh_token',
     data: qs.stringify({
       // refresh_token 只能使用1次
@@ -50,12 +51,12 @@ function refreshToken() {
   });
 }
 
-const handleSuccess = response => {     // eslint-disable-line
+const handleSuccess = (response: any): Promise<any> => {     // eslint-disable-line
   // (如果用的http状态码）状态码为 2xx 都会进入这里
   return response;
 };
 
-const handle401 = error => {    // eslint-disable-line
+const handle401 = (error: any): Promise<any> => {    // eslint-disable-line
   console.log('handle401');
   // token 无效（没有提供 token、token 是无效的、token 过期了）
   // 如果有 refresh_token 则尝试使用 refresh_token 获取新的 access_token
@@ -98,18 +99,22 @@ const handle401 = error => {    // eslint-disable-line
   });
 };
 
-const handleError = async error => {    // (如果用的http状态码）超出 2xx 状态码都都执行这里
+type errMsgMap = {
+  [key: number]: string
+}
+
+const handleError = async (error: any): Promise<any> => {    // (如果用的http状态码）超出 2xx 状态码都都执行这里
   if (error.response) {                 // 情况1：请求发出去收到响应了，但是状态码超出了 2xx 范围
     const { status } = error.response;
 
-    const errMsg = {
+    const errMsg: errMsgMap = {
       400: '请求参数错误',
       403: '没有权限，请联系管理员',
       404: '请求资源不存在',
     };
 
-    if (errMsg[status]) {
-      Message.error(errMsg[status]);
+    if (errMsg[status]) {               // eslint-disable-line
+      Message.error(errMsg[status]);    // eslint-disable-line
     } else if (status >= 500) {
       Message.error('服务端错误，请联系管理员');
     } else if (status === 401) {

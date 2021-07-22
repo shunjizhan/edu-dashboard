@@ -2,13 +2,19 @@ module.exports = {
   devServer: {
     proxy: {
       // 把对/boss的请求转发到target
-      '/boss': {
+      '/api/boss': {
         target: 'http://eduboss.lagou.com',
         changeOrigin: true,   //  把请求头中的host配置为target
+        pathRewrite: {
+          '^/api': '/',
+        },
       },
-      '/front': {
+      '/api/front': {
         target: 'http://edufront.lagou.com',
         changeOrigin: true,
+        pathRewrite: {
+          '^/api': '/',
+        },
       },
     },
   },

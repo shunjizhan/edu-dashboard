@@ -398,3 +398,93 @@ const handleUploadProgress = (e: any) => {
 
 const { data } = await uploadCourseImage(fd, handleUploadProgress);
 ```
+## 19）课程管理: 课程内容的查看和编辑
+
+
+## 20) 打包部署
+首先`yarn build`打包，实际是运行vue-cli提供的打包script。
+
+打包好的dist目录有两种启动方法：
+- 如果打包的时候把publicPath配置为一个相对的值，可以直接用打开dist/index.html
+- 或者用serve这个服务： `yarn add serve -g && serve -s dist`，serve会启动一个静态的web服务器。
+
+但是devServer里面的proxy只对于yarn serve有效(毕竟是在vue.config.js的devServer里面设置的)，只对devServer有效，所以这里我们需要手写一个proxy的服务。
+
+准备：因为vercel的要求，我们把request里面所有的请求都加上/api
+
+**本地proxy测试：**
+本地一个express的proxy测试，会发现dist已经可以运行了。
+```ts
+const express = require('express');
+const path = require('path');
+const { createProxyMiddleware } = require('http-proxy-middleware');
+
+const app = express();
+
+// 托管了 dist 目录，当访问 / 的时候，默认会返回托管目录中的 index.html 文件
+app.use(express.static(path.join(__dirname, '../dist')));
+
+app.use('/api/boss', createProxyMiddleware({
+  target: 'http://eduboss.lagou.com',
+  changeOrigin: true,
+  pathRewrite: {
+    '^/api': '',
+  },
+}));
+
+app.use('/api/front', createProxyMiddleware({
+  target: 'http://edufront.lagou.com',
+  changeOrigin: true,
+  pathRewrite: {
+    '^/api': '',
+  },
+}));
+
+app.listen(3030, () => {
+  console.log('running...');
+});
+```
+
+**部署到vercel：**
+vercel上可以部署[`serverless funtions`](https://vercel.com/docs/serverless-functions/introduction),我们可以类似上面的本地proxy服务器，首先在vercel.json里面设置routes，把请求指向一个serverless function
+```json
+{
+  "routes": [
+    {
+      "src": "/api/boss/(.*)",
+      "dest": "/api/proxy"
+    },
+    {
+      "src": "/api/front/(.*)",
+      "dest": "/api/proxy"
+    }
+  ]
+}
+```
+这样把请求指向了根目录下的`api/proxy.js`:
+```ts
+const { createProxyMiddleware } = require('http-proxy-middleware');
+
+module.exports = (req, res) => {
+  let target = '';
+
+  // 处理代理目标地址
+  if (req.url.includes('/api/front')) {
+    target = 'http://edufront.lagou.com';
+  } else if (req.url.startsWith('/api/boss')) {
+    target = 'http://eduboss.lagou.com';
+  }
+
+  // 创建代理对象并转发请求
+  createProxyMiddleware({
+    target,
+    changeOrigin: true,
+    pathRewrite: {
+      // 通过路径重写，去除请求路径中的 /api
+      // 例如 /api/boss/xxx 将被转发到 http://eduboss.lagou.com/boss/xxx
+      '^/api': '',
+    },
+  })(req, res);
+};
+```
+
